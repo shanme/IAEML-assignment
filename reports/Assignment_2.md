@@ -6,11 +6,11 @@
 
 ## 1. Experimental setup and model
 
-I trained a policy to drive the vehicle from Assignment 1 to the goal. The policy receives the 26 observation values and outputs acceleration and steering inputs. An episode ends at the goal, on collision, or after 600 steps. The reward includes route progress, control penalties, and the final outcome.
+The experiment trains a policy to drive the vehicle from Assignment 1 to the goal. The policy receives the 26 observation values and outputs acceleration and steering inputs. An episode ends at the goal, on collision, or after 600 steps. The reward includes route progress, control penalties, and the final outcome.
 
 The experiments use map 0. At reset, the starting position changes by up to 0.15 units, heading changes by up to 0.12 radians, and moving obstacles are advanced by a random time between zero and eight seconds. Evaluation uses separate random keys for 32 new resets on the same map. This tests small changes in the starting conditions, rather than driving on an unseen map.
 
-I used [Proximal Policy Optimization (PPO), Schulman et al. (2017)](https://arxiv.org/abs/1707.06347), implemented in `src/algorithms/ppo.py`. There are two neural networks:
+The implementation uses [Proximal Policy Optimization (PPO), Schulman et al. (2017)](https://arxiv.org/abs/1707.06347) in `src/algorithms/ppo.py`. There are two neural networks:
 
 - The actor chooses acceleration and steering. It outputs the means of two Gaussian distributions, with learned standard deviations. During training, actions are sampled to allow exploration. Applying tanh keeps each input between -1 and 1. The probability calculation accounts for this transformation.
 - The critic estimates the expected discounted return from an observation. This estimate helps judge whether an action led to a better result than expected.
@@ -21,14 +21,14 @@ PPO first collects trajectories with the current policy. It then uses these obse
 
 $$
 L=\mathbb{E}_t\left[\min\left(\rho_t A_t,
-\operatorname{clip}(\rho_t,1-\epsilon,1+\epsilon)A_t\right)\right],
+\mathrm{clip}(\rho_t,1-\epsilon,1+\epsilon)A_t\right)\right],
 \qquad
 \rho_t=\frac{\pi_\theta(u_t\mid o_t)}{\pi_{\mathrm{old}}(u_t\mid o_t)}.
 $$
 
 Here, $A_t$ is the estimated advantage of the action, and $\rho_t$ compares its probability under the updated and previous policies. Clipping reduces the incentive to make a large policy change from one batch. The critic is trained with a clipped value loss. A small exploration bonus uses the Gaussian entropy before tanh, rather than the exact entropy of the final bounded actions.
 
-I estimate advantages using [generalized advantage estimation, Schulman et al.](https://arxiv.org/abs/1506.02438), with discount 0.99 and parameter 0.95. At a goal or collision, there is no next-state value. At a time limit, the critic estimates the value of the final observation before reset. Advantage calculation stops across every reset, so rewards from different episodes are not mixed.
+Advantage estimates use [generalized advantage estimation, Schulman et al.](https://arxiv.org/abs/1506.02438), with discount 0.99 and parameter 0.95. At a goal or collision, there is no next-state value. At a time limit, the critic estimates the value of the final observation before reset. Advantage calculation stops across every reset, so rewards from different episodes are not mixed.
 
 | Setting | Value |
 | --- | --- |
@@ -49,7 +49,7 @@ The two runs start from the same network weights and use the same settings. Only
 
 ## 2. Computational optimizations
 
-I used JAX for both the environment and the networks. `vmap` runs the 32 environments as a batch. `lax.scan` handles repeated rollout steps, advantage calculation, and training passes. `jit` compiles these operations, reducing the amount of work handled by Python during training. These tools follow the approach described in the [JAX documentation](https://docs.jax.dev/en/latest/jit-compilation.html).
+Both the environment and the networks use JAX. `vmap` runs the 32 environments as a batch. `lax.scan` handles repeated rollout steps, advantage calculation, and training passes. `jit` compiles these operations, reducing the amount of work handled by Python during training. These tools follow the approach described in the [JAX documentation](https://docs.jax.dev/en/latest/jit-compilation.html).
 
 Arrays keep the same shapes during a run, and calculations use float32. The route is planned once when the environment is initialized. Observation scaling uses fixed ranges, so no running normalization statistics are needed. Training copies summary statistics to the CPU-side Python code once per update, rather than copying every observation.
 
@@ -57,13 +57,13 @@ The short run took 29.28 seconds, or about 17,908 transitions per second. The lo
 
 ## 3. Reflection
 
-The first training run gave a useful example of why return alone is not enough to judge the result. Mean evaluation return increased from about 2.08 to 112.06, but the vehicle still failed to reach the goal in all 32 episodes. Looking only at the return would have made the result seem better than it was.
+The first training run showed that return alone does not indicate whether the policy reaches the goal. Mean evaluation return increased from about 2.08 to 112.06, but none of the 32 episodes reached the goal. Goal, collision, and timeout counts therefore need to be considered alongside return.
 
-I then increased the training budget while keeping the reward, seed, and PPO settings the same. The longer run reached the goal in all 32 evaluation episodes. Comparing the runs this way made it easier to see the effect of more training without also changing several other parts of the experiment.
+The training budget was then increased while the reward, seed, and PPO settings remained unchanged. The longer run reached the goal in all 32 evaluation episodes. Keeping the other settings fixed allowed the effect of additional training to be compared.
 
-Another detail that needed care was the difference between a collision and a timeout. A collision ends the task, while a timeout cuts off an episode that could otherwise continue. I kept separate flags for these cases and checked the critic's next-state value before resetting the environment. I also checked that loading the saved model gave the same evaluation results.
+Episode endings required separate collision and timeout flags. A collision ends the task, while a timeout cuts off an episode that could otherwise continue. The critic's next-state value is calculated before reset and set to zero for a goal or collision. Loading the saved model was also checked against the recorded evaluation results.
 
-The final result is good for the tested map and starting conditions. I would still avoid treating 32 successful resets as proof that the policy works everywhere. A useful next experiment would be to evaluate other maps or make the starting conditions more varied.
+Evaluation covered 32 resets on one map. These results do not establish performance on other maps or substantially different starting conditions. Further evaluation could use additional maps and a wider range of starts.
 
 ## 4. Results and reproduction
 
