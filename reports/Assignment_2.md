@@ -2,7 +2,7 @@
 
 **Author:** Vadim Poponnikov  
 **Group:** AA-03  
-**Signature:** ____________________
+**Email:** vadim.poponnikov@yandex.ru
 
 ## 1. Experimental setup and model
 
