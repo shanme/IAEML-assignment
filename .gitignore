@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+.venv/
+.uv-cache/
+.pytest_cache/
+Assignments.pdf
+artifacts/ppo/evaluation_reproduced.json
+artifacts/ppo_524288/initial.npz

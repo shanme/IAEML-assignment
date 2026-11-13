@@ -1,0 +1,16 @@
+absl-py==2.5.1
+chex==0.1.92
+equinox==0.13.8
+imageio-ffmpeg==0.7.0
+jax==0.12.0.1
+jaxlib==0.12.0.1
+jaxtyping==0.3.11
+ml-dtypes==0.6.0
+numpy==2.5.4
+opt-einsum==3.4.0
+optax==0.2.8
+pygame==2.6.1
+scipy==1.18.1
+toolz==1.2.0
+typing-extensions==4.16.0
+wadler-lindig==0.1.8

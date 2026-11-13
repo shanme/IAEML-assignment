@@ -1,0 +1,55 @@
+{
+  "format_version": 1,
+  "algorithm": "PPO with GAE and tanh Gaussian policy",
+  "config": {
+    "steps": 2097152,
+    "num_envs": 32,
+    "rollout_steps": 128,
+    "epochs": 4,
+    "minibatches": 4,
+    "learning_rate": 0.0003,
+    "gamma": 0.99,
+    "gae_lambda": 0.95,
+    "clip_epsilon": 0.2,
+    "value_coefficient": 0.5,
+    "entropy_coefficient": 0.001,
+    "max_grad_norm": 0.5,
+    "hidden_sizes": [
+      64,
+      64
+    ],
+    "seed": 7,
+    "map_id": 0,
+    "max_steps": 600,
+    "eval_episodes": 32,
+    "eval_seed": 10000
+  },
+  "observation_size": 26,
+  "action_size": 2,
+  "observation_normalization": "Fixed scaling supplied by RobotaxiObservation.as_vector; no fitted statistics.",
+  "environment": {
+    "max_steps_in_episode": 600,
+    "fps": 10,
+    "step_size": 0.1,
+    "map_height_width": [
+      30,
+      60
+    ],
+    "num_ray_sensors": 16,
+    "agent_FOV": 3.141592653589793,
+    "perception_radius": 10.0,
+    "wheelbase": 1.5,
+    "max_speed": 4.0,
+    "max_acceleration": 3.0,
+    "max_steering": 0.6,
+    "linear_drag": 0.15,
+    "quadratic_drag": 0.03,
+    "physics_substeps": 4,
+    "map_scale": 3,
+    "path_length": 100
+  },
+  "actual_training_steps": 2097152,
+  "jax_version": "0.12.0.1",
+  "backend": "cpu",
+  "training_seconds_including_compilation": 107.34962230000019
+}
